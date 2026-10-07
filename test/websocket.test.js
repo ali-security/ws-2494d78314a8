@@ -588,7 +588,14 @@ describe('WebSocket', () => {
       });
     });
 
-    it('does not re-emit `net.Socket` errors', (done) => {
+    it('does not re-emit `net.Socket` errors', function (done) {
+      //
+      // On macOS the writes after the peer is terminated do not reliably fail
+      // with one of the codes below, so the 'error' listener never fires and
+      // the test times out.
+      //
+      if (process.platform === 'darwin') return this.skip();
+
       const codes = ['EPIPE', 'ECONNABORTED', 'ECANCELED', 'ECONNRESET'];
       const wss = new WebSocket.Server({ port: 0 }, () => {
         const ws = new WebSocket(`ws://localhost:${wss.address().port}`);
